@@ -1,0 +1,58 @@
+name: Issue labeler
+
+on:
+  issues:
+    types:
+      - "labeled"
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
+
+# This defines the permissions that the API token will have. If you aren't able to do something
+# you want from your script, you probably need to make changes here
+permissions:
+  #  need issues write access to add comments and manipulate labels.
+  issues: write
+  # contents read permissions are needed to read repository contents.
+  contents: read
+  
+jobs:
+  # This script run is triggered each time an event is labeled with a label that starts with SEV-
+  label-change:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.action == 'labeled' && 
+      contains(github.event.label.name, 'SEV-')
+    steps:
+      - name: Dump GitHub context
+        if: ${{ !github.event.act }} 
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github.event) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+      - name: Get file
+        uses: actions/checkout@v3
+      - name: Check issue age and update labels
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |   
+            const script = require('.github/workflows/issue-labeler/sev-labels-labeled.js')
+            await script({ github, context})
+  # This script run is triggered by a schedule and will run every day at 8am UTC.
+  label-change-cron:
+    if: contains(fromJSON('["workflow_dispatch", "schedule"]'), github.event_name)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get file
+        uses: actions/checkout@v3
+      - name: Check issue age and update labels
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Here we simply import our script and pass in the github and context objects.
+          # These objects are provided by the GitHub Actions runtime and give us the ability to 
+          # make GitHub API calls and inspect the event that triggered the workflow.
+          script: |   
+            const script = require('.github/workflows/issue-labeler/sev-labels-cron.js')
+            await script({ github, context})
