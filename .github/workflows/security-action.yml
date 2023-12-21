@@ -28,10 +28,14 @@ jobs:
       contents: read
       security-events: write
     steps:   
-      - name: MetaMask Security Code Scanner
-        uses: MetaMask/Security-Code-Scanner@main
+      # - name: MetaMask Security Code Scanner
+      #   uses: witmicko/Security-Code-Scanner@main
+      #   with:
+      #     repo: ${{ github.repository }}
+      #     paths_ignored: ${{ github.event.inputs.paths_ignored || env.DEFAULT_PATHS_IGNORED }}
+      #     rules_excluded: ${{ github.event.inputs.rules_excluded || env.DEFAULT_RULES_EXCLUDED }}
+      - name: Scan with Gepety
+        uses: witmicko/gepety-scan-action@main
         with:
-          repo: ${{ github.repository }}
-          paths_ignored: ${{ github.event.inputs.paths_ignored || env.DEFAULT_PATHS_IGNORED }}
-          rules_excluded: ${{ github.event.inputs.rules_excluded || env.DEFAULT_RULES_EXCLUDED }}
+          repo-name: ${{ github.repository }}
           
