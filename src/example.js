@@ -5,4 +5,5 @@ var secret = "12345"
 var user_input = "12345"
 if (user_input == secret) {
   // Grant access
+  //test
 }
