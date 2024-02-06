@@ -23,15 +23,6 @@ env:
   DEFAULT_RULES_EXCLUDED: ""
 
 jobs:
-  pr_commented:
-    name: PR comment
-    if: ${{ github.event.pull_request_review != null }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo A comment on PR $SENDER
-        env:
-          SENDER: ${{ github.event.pull_request_review.sender }}
   run-security-scan:
     if: ${{ github.event.pull_request != null}}
     runs-on: ubuntu-latest
