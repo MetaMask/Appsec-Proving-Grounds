@@ -29,7 +29,7 @@ jobs:
       security-events: write
     steps:   
       - name: MetaMask Security Code Scanner
-        uses: MetaMask/Security-Code-Scanner@699d3a7597386bee0c5d95ca480efdc0d111dc26
+        uses: MetaMask/Security-Code-Scanner@ellul/java-scanning
         with:
           repo: ${{ github.repository }}
           paths_ignored: ${{ github.event.inputs.paths_ignored || env.DEFAULT_PATHS_IGNORED }}
