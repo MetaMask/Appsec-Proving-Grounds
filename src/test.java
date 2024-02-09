@@ -1,64 +1,52 @@
-import java.lang.ProcessBuilder;
-import java.util.List;
-import java.util.ArrayList;
+public static void main(String[] args) throws Exception {
+    {
+        class InsecureTrustManager implements X509TrustManager {
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
 
-class Test {
-  public static void shellCommand(String arg) throws java.io.IOException {
-    ProcessBuilder pb = new ProcessBuilder("/bin/bash -c echo " + arg);
-    pb.start();
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // BAD: Does not verify the certificate chain, allowing any certificate.
+            }
 
-    pb = new ProcessBuilder(new String[]{"/bin/bash", "-c", "echo " + arg});
-    pb.start();
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 
-    List<String> cmd = new ArrayList<String>();
-    cmd.add("/bin/bash");
-    cmd.add("-c");
-    cmd.add("echo " + arg);
-
-    pb = new ProcessBuilder(cmd);
-    pb.start();
-
-    String[] cmd1 = new String[]{"/bin/bash", "-c", "<cmd>"};
-    cmd1[1] = "echo " + arg;
-
-    pb = new ProcessBuilder(cmd1);
-    pb.start();
-  }
-
-  public static void nonShellCommand(String arg) throws java.io.IOException {
-    ProcessBuilder pb = new ProcessBuilder("./customTool " + arg);
-    pb.start();
-
-    pb = new ProcessBuilder(new String[]{"./customTool", arg});
-    pb.start();
-
-    List<String> cmd = new ArrayList<String>();
-    cmd.add("./customTool");
-    cmd.add(arg);
-
-    pb = new ProcessBuilder(cmd);
-    pb.start();
-
-    String[] cmd1 = new String[]{"./customTool", "<arg>"};
-    cmd1[1] = arg;
-
-    pb = new ProcessBuilder(cmd1);
-    pb.start();
-  }
-
-  public static void relativeCommand() throws java.io.IOException {
-      ProcessBuilder pb = new ProcessBuilder("ls");
-      pb.start();
-
-      pb = new ProcessBuilder("/bin/ls");
-      pb.start();
-  }
-
-  public static void main(String[] args) throws java.io.IOException {
-      String arg = args.length > 1 ? args[1] : "default";
-
-      shellCommand(arg);
-      nonShellCommand(arg);
-      relativeCommand();
-  }
+            }
+        }
+        SSLContext context = SSLContext.getInstance("TLS");
+        TrustManager[] trustManager = new TrustManager[] { new InsecureTrustManager() };
+        context.init(null, trustManager, null);
+    }
+    {
+        SSLContext context = SSLContext.getInstance("TLS");
+        File certificateFile = new File("path/to/self-signed-certificate");
+        // Create a `KeyStore` with default type
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        // `keyStore` is initially empty
+        keyStore.load(null, null);
+        X509Certificate generatedCertificate;
+        try (InputStream cert = new FileInputStream(certificateFile)) {
+            generatedCertificate = (X509Certificate) CertificateFactory.getInstance("X509")
+                    .generateCertificate(cert);
+        }
+        // Add the self-signed certificate to the key store
+        keyStore.setCertificateEntry(certificateFile.getName(), generatedCertificate);
+        // Get default `TrustManagerFactory`
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        // Use it with our key store that trusts our self-signed certificate
+        tmf.init(keyStore);
+        TrustManager[] trustManagers = tmf.getTrustManagers();
+        context.init(null, trustManagers, null);
+        // GOOD, we are not using a custom `TrustManager` but instead have
+        // added the self-signed certificate we want to trust to the key
+        // store. Note, the `trustManagers` will **only** trust this one
+        // certificate.
+        
+        URL url = new URL("https://self-signed.badssl.com/");
+        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+        conn.setSSLSocketFactory(context.getSocketFactory());
+    }
 }
