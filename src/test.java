@@ -44,6 +44,7 @@ public static void main(String[] args) throws Exception {
         // added the self-signed certificate we want to trust to the key
         // store. Note, the `trustManagers` will **only** trust this one
         // certificate.
+        // test
         
         URL url = new URL("https://self-signed.badssl.com/");
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
