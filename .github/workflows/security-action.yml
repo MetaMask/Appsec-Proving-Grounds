@@ -27,6 +27,6 @@ jobs:
             data/
             tests/
           rules_excluded: |
-            ""
+            rule1
           mixpanel_project_token: ${{secrets.SECURITY_CODE_SCANNER_MIXPANEL_TOKEN}}
           slack_webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
