@@ -20,12 +20,13 @@ jobs:
       security-events: write
     steps:   
       - name: MetaMask Security Code Scanner
-        uses: MetaMask/Security-Code-Scanner@failing
+        uses: MetaMask/Security-Code-Scanner@main
         with:
           repo: ${{ github.repository }}
           paths_ignored: |
             data/
             tests/
-          rules_excluded: 
+          rules_excluded: |
+            examplerule
           mixpanel_project_token: ${{secrets.SECURITY_CODE_SCANNER_MIXPANEL_TOKEN}}
           slack_webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
