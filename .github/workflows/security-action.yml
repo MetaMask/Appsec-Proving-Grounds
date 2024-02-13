@@ -2,15 +2,6 @@
 name: "MetaMask Security Action"
 
 on:
-  workflow_dispatch:
-    inputs:
-      paths_ignored:
-        description: 'Comma delimited paths to ignore during scan' 
-        required: false
-        default: 'data'
-      rules_excluded:
-        description: 'Comma delimited IDs of rules to exclude' 
-        required: false
   push:
     branches: [ 'main' ]
   pull_request:
@@ -32,7 +23,10 @@ jobs:
         uses: MetaMask/Security-Code-Scanner@main
         with:
           repo: ${{ github.repository }}
-          paths_ignored: ${{ github.event.inputs.paths_ignored || env.DEFAULT_PATHS_IGNORED }}
-          rules_excluded: ${{ github.event.inputs.rules_excluded || env.DEFAULT_RULES_EXCLUDED }}
+          paths_ignored: |
+            data/
+            tests/
+          rules_excluded: |
+            ""
           mixpanel_project_token: ${{secrets.SECURITY_CODE_SCANNER_MIXPANEL_TOKEN}}
           slack_webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
