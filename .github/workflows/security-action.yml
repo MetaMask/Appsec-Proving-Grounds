@@ -5,29 +5,32 @@ on:
   workflow_dispatch:
     inputs:
       paths_ignored:
-        description: 'Comma delimited paths to ignore during scan' 
+        description: "Comma delimited paths to ignore during scan"
         required: false
-        default: 'data'
+        default: "data"
       rules_excluded:
-        description: 'Comma delimited IDs of rules to exclude' 
+        description: "Comma delimited IDs of rules to exclude"
         required: false
   push:
-    branches: [ 'main' ]
+    branches: ["main"]
   pull_request:
-    branches: [ 'main' ]
+    branches: ["main"]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
 
 env:
-  DEFAULT_PATHS_IGNORED: 'data'
-  DEFAULT_RULES_EXCLUDED: ''
-  
+  DEFAULT_PATHS_IGNORED: "data"
+  DEFAULT_RULES_EXCLUDED: ""
+
 jobs:
   run-security-scan:
+    if: ${{ github.event.pull_request != null}}
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
-    steps:   
+    steps:
       - name: MetaMask Security Code Scanner
         uses: MetaMask/Security-Code-Scanner@main
         with:
